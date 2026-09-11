@@ -2,7 +2,7 @@
 
 A modern, responsive developer portfolio website showcasing my **skills, projects, education, experience, and technical background**, with an integrated **AI-powered portfolio assistant** that can answer questions about my profile and compare my skills with job requirements.
 
-## 🌐 Live Website
+## 🌐 Live Website - https://vishwas-sonker-portfolio.netlify.app/
 
 > Coming soon
 
