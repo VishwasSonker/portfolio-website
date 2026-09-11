@@ -82,18 +82,48 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
         throw new Error('Failed to get AI response');
       }
 
-      const data = await response.json();
+      if (!response.body) {
+        throw new Error('Streaming is not supported');
+      }
 
-      const assistantMessage: Message = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: data.reply,
-      };
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      const assistantId = Date.now() + 1;
+
+      let assistantContent = '';
 
       setMessages((prev) => [
         ...prev,
-        assistantMessage,
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: '',
+        },
       ]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value, {
+          stream: true,
+        });
+
+        assistantContent += chunk;
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantId
+              ? {
+                  ...message,
+                  content: assistantContent,
+                }
+              : message
+          )
+        );
+      }
 
     } catch (error) {
 

@@ -1,6 +1,7 @@
 import os
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -249,7 +250,7 @@ async def root():
 # Chat endpoint
 # --------------------------------------------------
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post("/api/chat")
 async def chat(request: ChatRequest):
 
     if not request.messages:
@@ -258,8 +259,7 @@ async def chat(request: ChatRequest):
             detail="No messages provided"
         )
 
-    # Keep only the most recent messages.
-    # This prevents unnecessarily large requests.
+    # Keep only the most recent messages
     recent_messages = request.messages[-12:]
 
     messages = [
@@ -281,33 +281,33 @@ async def chat(request: ChatRequest):
             }
         )
 
-    try:
+    def generate():
 
-        completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=messages,
-            temperature=0.3,
-            max_completion_tokens=300,
-            reasoning_effort="low",
-        )
-
-        reply = completion.choices[0].message.content
-
-        if not reply:
-            raise HTTPException(
-                status_code=500,
-                detail="The AI returned an empty response"
+        try:
+            stream = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=messages,
+                temperature=0.3,
+                max_completion_tokens=300,
+                reasoning_effort="low",
+                stream=True
             )
 
-        return ChatResponse(
-            reply=reply
-        )
+            for chunk in stream:
 
-    except Exception as e:
+                if not chunk.choices:
+                    continue
 
-        print("Groq API error:", e)
+                delta = chunk.choices[0].delta.content
 
-        raise HTTPException(
-            status_code=500,
-            detail="Unable to generate AI response"
-        )
+                if delta:
+                    yield delta
+
+        except Exception as e:
+            print("Groq streaming error:", e)
+            yield "\n\n[Error generating response]"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/plain"
+    )
