@@ -1,0 +1,128 @@
+export interface Project {
+  title: string;
+  role: string;
+  description: string;
+  problemSolved: string;
+  keyFeatures: string[];
+  technologies: string[];
+  githubUrl: string;
+  liveUrl?: string;
+  featured?: boolean;
+}
+
+export interface EducationItem {
+  degree: string;
+  institution: string;
+  period: string;
+  score: string;
+  location: string;
+}
+
+export const resumeData = {
+  personal: {
+    name: "Vishwas Sonker",
+    title: "B.Tech Student & Software Developer",
+    specialization: "Artificial Intelligence and Data Science",
+    institution: "Jabalpur Engineering College | M.P",
+    email: "vishwasprofessional25@gmail.com",
+    location: "Jabalpur, M.P.",
+    links: {
+      leetcode: "https://leetcode.com/u/vishwas_sonker/",
+      linkedin: "https://www.linkedin.com/in/vishwas-sonker-351500366/",
+      github: "https://github.com/VishwasSonker",
+    }
+  },
+  summary: "Motivated B.Tech student specializing in Artificial Intelligence and Data Science at Jabalpur Engineering College with a strong foundation in C++ and Python development. Passionate about building high-performance custom data structures, machine learning architectures, and responsive web applications. Adept at solving complex algorithmic problems and eager to apply technical skills in software engineering internships and full-time roles.",
+  skills: {
+    "Programming Languages": ["C", "C++", "Python", "SQL", "HTML", "CSS", "Java"],
+    "Frameworks & Libraries": ["NumPy", "Pandas", "Matplotlib", "Seaborn", "Scikit Learn", "Tensorflow", "Pytorch", "Django", "Flask", "Fast-API"],
+    "Databases": ["MySQL"],
+    "Tools & Platforms": ["Git", "GitHub"],
+    "Soft Skills": ["Problem-Solving", "Teamwork", "Adaptability", "Leadership"],
+    "Languages": ["English", "Hindi"]
+  },
+  projects: [
+    {
+      title: "Own AI - Custom Vector Database & RAG Engine",
+      role: "Developer",
+      description: "A custom high-performance vector database built from scratch in C++ paired with a local Retrieval-Augmented Generation (RAG) system using Ollama embeddings and LLMs.",
+      problemSolved: "Addressed the challenge of efficient nearest-neighbor search and local document querying without heavy reliance on external hosted cloud vector search infrastructure.",
+      keyFeatures: [
+        "Implemented custom vector database search algorithms including HNSW, KD-Tree, and Brute Force nearest-neighbor search in C++.",
+        "Integrated Ollama embeddings and local LLMs for end-to-end RAG workflows.",
+        "Created an interactive user interface utilizing HTML, CSS, and JavaScript for smooth semantic document search and visualization."
+      ],
+      technologies: ["C++", "RAG", "Ollama", "HTML", "CSS", "JavaScript"],
+      githubUrl: "https://github.com/VishwasSonker/own-ai-vector-db",
+      featured: true
+    },
+    {
+      title: "Netflix Content-Based Recommendation System",
+      role: "Developer",
+      description: "A Python-based recommendation engine that delivers Top-10 similar Netflix movies and TV shows based on metadata features.",
+      problemSolved: "Overcame metadata matching challenges by processing textual attributes (genre, cast, director, description) to compute semantic title similarity.",
+      keyFeatures: [
+        "Utilized TF-IDF vectorization and cosine similarity calculations on title, genre, cast, director, and description metadata.",
+        "Engineered a Flask web application with title autocomplete, robust input validation, and similarity scoring.",
+        "Designed a responsive, Netflix-inspired dark user interface."
+      ],
+      technologies: ["Python", "scikit-learn", "Flask"],
+      githubUrl: "https://github.com/VishwasSonker/Netflix-Content-Based-Recommendation-System",
+      liveUrl: "https://netflix-content-based-recommendatio.vercel.app/",
+      featured: true
+    },
+    {
+      title: "AutoValue - Car Price Prediction",
+      role: "Developer",
+      description: "An end-to-end machine learning application for predicting vehicle MSRP with interactive real-time estimation.",
+      problemSolved: "Accurately predict vehicle market pricing by cleaning and extracting numerical features from complex automotive datasets.",
+      keyFeatures: [
+        "Developed machine learning models using Linear Regression achieving a 0.92 R2 score on the test set.",
+        "Performed rigorous data cleaning, numerical feature extraction, and one-hot encoding for categorical vehicle attributes.",
+        "Evaluated model performance using R2, RMSE, and MAE alongside decision tree feature importance analysis.",
+        "Deployed a real-time interactive user interface using Streamlit."
+      ],
+      technologies: ["scikit-learn", "Streamlit", "Machine Learning", "Python"],
+      githubUrl: "https://github.com/VishwasSonker/AutoValue-",
+      liveUrl: "https://9fh5hboqekdxbaoya6ugpv.streamlit.app/",
+      featured: false
+    },
+    {
+      title: "Hospital Management System",
+      role: "Developer",
+      description: "A robust console-based hospital management solution built in C++ utilizing custom data structures for priority patient scheduling.",
+      problemSolved: "Streamlined multi-department patient queuing and triage handling for critical care patients.",
+      keyFeatures: [
+        "Built using linked lists and queue-based patient management supporting multiple departments.",
+        "Implemented priority handling for critically ill patients.",
+        "Added patient registration with built-in duplicate ID validation and department-wise tracking."
+      ],
+      technologies: ["C++", "STL"],
+      githubUrl: "https://github.com/VishwasSonker/Hospital-Management-System-CPP",
+      featured: false
+    }
+  ] as Project[],
+  education: [
+    {
+      degree: "B.Tech in Artificial Intelligence & Data Science (Ongoing)",
+      institution: "Jabalpur Engineering College | Jabalpur, M.P.",
+      period: "2023 - 2027",
+      score: "CGPA: 7",
+      location: "Jabalpur, M.P."
+    },
+    {
+      degree: "Class 12",
+      institution: "Maharishi Vidya Mandir | Jabalpur, M.P.",
+      period: "2022 - 2023",
+      score: "Percentage: 77%",
+      location: "Jabalpur, M.P."
+    },
+    {
+      degree: "Class 10",
+      institution: "Maharshi Vidya Mandir | Jabalpur, M.P.",
+      period: "2021 - 2022",
+      score: "Percentage: 70%",
+      location: "Jabalpur, M.P."
+    }
+  ] as EducationItem[]
+};
