@@ -1,4 +1,7 @@
 import os
+import json
+import logging
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
@@ -7,9 +10,8 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from groq import Groq
 
-import json
-from pathlib import Path
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("portfolio-ai")
 
 # --------------------------------------------------
 # Environment
@@ -18,9 +20,10 @@ from pathlib import Path
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY is not set in the .env file")
+    logger.warning("GROQ_API_KEY is not set. /api/chat will return 500 until configured.")
 
 # --------------------------------------------------
 # Load resume data
@@ -37,11 +40,12 @@ RESUME_CONTEXT = json.dumps(
     indent=2,
     ensure_ascii=False
 )
+
 # --------------------------------------------------
 # Groq client
 # --------------------------------------------------
 
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 
 # --------------------------------------------------
@@ -59,22 +63,25 @@ app = FastAPI(
 # CORS
 # --------------------------------------------------
 
+cors_origins_env = os.getenv("CORS_ORIGINS")
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://vishwas-sonker-portfolio.netlify.app",
+]
+if cors_origins_env:
+    allowed_origins.extend([origin.strip() for origin in cors_origins_env.split(",") if origin.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-
-        # In case Vite uses another port
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-
-        "https://vishwas-sonker-portfolio.netlify.app/",
-        "https://vishwas-sonker-portfolio.netlify.app",
-    ],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"^https:\/\/.*\.netlify\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -255,6 +262,11 @@ async def root():
 
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
+    if not client or not GROQ_API_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="GROQ_API_KEY is not configured on the server."
+        )
 
     if not request.messages:
         raise HTTPException(
@@ -288,7 +300,7 @@ async def chat(request: ChatRequest):
 
         try:
             stream = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
+                model=GROQ_MODEL,
                 messages=messages,
                 temperature=0.3,
                 max_completion_tokens=300,
@@ -307,8 +319,8 @@ async def chat(request: ChatRequest):
                     yield delta
 
         except Exception as e:
-            print("Groq streaming error:", e)
-            yield "\n\n[Error generating response]"
+            logger.error(f"Groq streaming error: {e}")
+            yield "\n\nSorry, I encountered an issue generating a response. Please try again."
 
     return StreamingResponse(
         generate(),

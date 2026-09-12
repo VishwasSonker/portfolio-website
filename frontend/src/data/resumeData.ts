@@ -30,12 +30,13 @@ export const resumeData = {
       leetcode: "https://leetcode.com/u/vishwas_sonker/",
       linkedin: "https://www.linkedin.com/in/vishwas-sonker-351500366/",
       github: "https://github.com/VishwasSonker",
+      codolio: "https://codolio.com/profile/VishwasSonker",
     }
   },
   summary: "Motivated B.Tech student specializing in Artificial Intelligence and Data Science at Jabalpur Engineering College with a strong foundation in C++ and Python development. Passionate about building high-performance custom data structures, machine learning architectures, and responsive web applications. Adept at solving complex algorithmic problems and eager to apply technical skills in software engineering internships and full-time roles.",
   skills: {
     "Programming Languages": ["C", "C++", "Python", "SQL", "HTML", "CSS", "Java"],
-    "Frameworks & Libraries": ["NumPy", "Pandas", "Matplotlib", "Seaborn", "Scikit Learn", "Tensorflow", "Pytorch", "Django", "Flask", "Fast-API"],
+    "Frameworks & Libraries": ["NumPy", "Pandas", "Matplotlib", "Seaborn", "Scikit Learn", "Tensorflow", "Pytorch", "Django", "Flask", "FastAPI"],
     "Databases": ["MySQL"],
     "Tools & Platforms": ["Git", "GitHub"],
     "Soft Skills": ["Problem-Solving", "Teamwork", "Adaptability", "Leadership"],
@@ -105,21 +106,21 @@ export const resumeData = {
   education: [
     {
       degree: "B.Tech in Artificial Intelligence & Data Science (Ongoing)",
-      institution: "Jabalpur Engineering College | Jabalpur, M.P.",
+      institution: "Jabalpur Engineering College",
       period: "2023 - 2027",
       score: "CGPA: 7",
       location: "Jabalpur, M.P."
     },
     {
       degree: "Class 12",
-      institution: "Maharishi Vidya Mandir | Jabalpur, M.P.",
+      institution: "Maharishi Vidya Mandir",
       period: "2022 - 2023",
       score: "Percentage: 77%",
       location: "Jabalpur, M.P."
     },
     {
       degree: "Class 10",
-      institution: "Maharshi Vidya Mandir | Jabalpur, M.P.",
+      institution: "Maharishi Vidya Mandir",
       period: "2021 - 2022",
       score: "Percentage: 70%",
       location: "Jabalpur, M.P."

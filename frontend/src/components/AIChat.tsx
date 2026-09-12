@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
-import { X, Send, Sparkles } from 'lucide-react';
+import { X, Send, Sparkles, Loader2 } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -13,12 +14,19 @@ interface AIChatProps {
   onClose: () => void;
 }
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV
+    ? 'http://127.0.0.1:8000/api/chat'
+    : 'https://vishwas-portfolio-ai.onrender.com/api/chat');
+
 export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Automatically scroll to the latest message
   useEffect(() => {
@@ -40,12 +48,37 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen]);
 
+  // Close on Escape key press
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, onClose]);
+
+  // Auto-focus input when opened
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleSend = async () => {
     const trimmedInput = input.trim();
 
-    if (!trimmedInput) return;
+    if (!trimmedInput || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now(),
@@ -59,19 +92,19 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
     // Immediately show user's message
     setMessages(updatedMessages);
 
-    // Clear input
+    // Clear input and set loading
     setInput('');
+    setIsLoading(true);
+
+    const assistantId = Date.now() + 1;
+    let assistantContent = '';
 
     try {
-      const response = await fetch(
-        'https://vishwas-portfolio-ai.onrender.com/api/chat', 
-        {
+      const response = await fetch(API_URL, {
         method: 'POST',
-
         headers: {
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify({
           messages: updatedMessages.map((message) => ({
             role: message.role,
@@ -81,19 +114,12 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get AI response');
+        throw new Error(`Failed to get AI response: ${response.status}`);
       }
 
       if (!response.body) {
         throw new Error('Streaming is not supported');
       }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      const assistantId = Date.now() + 1;
-
-      let assistantContent = '';
 
       setMessages((prev) => [
         ...prev,
@@ -103,6 +129,9 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
           content: '',
         },
       ]);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
 
       while (true) {
         const { done, value } = await reader.read();
@@ -128,30 +157,35 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
       }
 
     } catch (error) {
-
       console.error('Chat error:', error);
 
       const errorMessage: Message = {
-        id: Date.now() + 1,
+        id: assistantContent ? assistantId + 1 : assistantId,
         role: 'assistant',
         content:
           "Sorry, I'm having trouble connecting to my AI backend right now. Please try again in a moment.",
       };
 
-      setMessages((prev) => [
-        ...prev,
-        errorMessage,
-      ]);
+      setMessages((prev) => {
+        const existing = prev.find((m) => m.id === assistantId);
+        if (existing && !assistantContent) {
+          return prev.map((m) => (m.id === assistantId ? errorMessage : m));
+        }
+        return [...prev, errorMessage];
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !isLoading) {
+      e.preventDefault();
       handleSend();
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
 
       {/* Backdrop */}
@@ -260,47 +294,55 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
                         : 'bg-dark-800 border border-dark-600 text-gray-300 rounded-bl-md'
                     }`}
                   >
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                      ul: ({ children }) => (
-                        <ul className="list-disc ml-5 mb-2 space-y-1">{children}</ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="list-decimal ml-5 mb-2 space-y-1">{children}</ol>
-                      ),
-                      li: ({ children }) => <li>{children}</li>,
-                      strong: ({ children }) => (
-                        <strong className="font-semibold text-white">{children}</strong>
-                      ),
-                      h1: ({ children }) => (
-                        <h1 className="text-lg font-semibold text-white mb-2">{children}</h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 className="text-base font-semibold text-white mb-2">{children}</h2>
-                      ),
-                      h3: ({ children }) => (
-                        <h3 className="text-sm font-semibold text-white mb-1">{children}</h3>
-                      ),
-                      code: ({ children }) => (
-                        <code className="rounded bg-dark-700 px-1.5 py-0.5 text-xs text-accent-300">
-                          {children}
-                        </code>
-                      ),
-                      a: ({ children, href }) => (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-accent-400 hover:text-accent-300 underline transition-colors"
-                        >
-                          {children}
-                        </a>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                  {message.role === 'assistant' && !message.content ? (
+                    <div className="flex items-center gap-1.5 py-1 px-1">
+                      <span className="h-2 w-2 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => (
+                          <ul className="list-disc ml-5 mb-2 space-y-1">{children}</ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal ml-5 mb-2 space-y-1">{children}</ol>
+                        ),
+                        li: ({ children }) => <li>{children}</li>,
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-white">{children}</strong>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="text-lg font-semibold text-white mb-2">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-base font-semibold text-white mb-2">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-sm font-semibold text-white mb-1">{children}</h3>
+                        ),
+                        code: ({ children }) => (
+                          <code className="rounded bg-dark-700 px-1.5 py-0.5 text-xs text-accent-300">
+                            {children}
+                          </code>
+                        ),
+                        a: ({ children, href }) => (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-400 hover:text-accent-300 underline transition-colors"
+                          >
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  )}
                   </div>
 
                 </div>
@@ -327,6 +369,7 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
           >
 
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -343,7 +386,7 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
 
             <button
               onClick={handleSend}
-              disabled={!input.trim()}
+              disabled={!input.trim() || isLoading}
               className="flex h-9 w-9 shrink-0
                          items-center justify-center
                          rounded-lg
@@ -355,7 +398,7 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
                          disabled:opacity-40"
               aria-label="Send message"
             >
-              <Send size={17} />
+              {isLoading ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
             </button>
 
           </div>
@@ -367,6 +410,7 @@ export const AIChat: React.FC<AIChatProps> = ({ isOpen, onClose }) => {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

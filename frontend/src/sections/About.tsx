@@ -1,6 +1,5 @@
 import React from 'react';
-import { resumeData } from '../data/resumeData';
-import { Cpu, Code, Brain, Target } from 'lucide-react';
+import { Code, Brain, Target } from 'lucide-react';
 
 export const About: React.FC = () => {
   return (

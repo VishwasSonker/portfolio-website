@@ -130,6 +130,7 @@ export const Navbar: React.FC = () => {
             <a 
               href="/resume.pdf" 
               download="Vishwas_Sonker_Resume.pdf"
+              onClick={() => setIsOpen(false)}
               className="block text-center w-full py-2.5 text-sm font-medium text-white bg-accent-600 hover:bg-accent-500 rounded-lg transition-all"
             >
               Download Resume
